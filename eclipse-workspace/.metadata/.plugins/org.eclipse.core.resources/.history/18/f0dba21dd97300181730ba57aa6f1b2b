@@ -1,0 +1,37 @@
+package com.test.movie.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.web.bind.annotation.RestController;
+
+import model.Movie;
+
+@RestController
+public class RestContorller {
+	
+	/* Naver Open API ฐüทร */
+	private static final String naver_url = "";
+	private static final String naver_key = "";
+	
+	
+	private static final String kobis_url = "http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json";
+	private static final String kobis_key = "";
+	
+	
+	public String getImgUrl() {
+		String imgUrl = "";
+		
+		
+		return imgUrl;
+	}
+	
+	public List<Movie> getMovieInfo(){
+		List list = new ArrayList<Movie>();
+		
+		
+		return list;
+	}
+	
+	
+}
