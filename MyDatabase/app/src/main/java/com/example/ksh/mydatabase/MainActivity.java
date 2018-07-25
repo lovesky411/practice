@@ -1,8 +1,10 @@
 package com.example.ksh.mydatabase;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -89,16 +91,22 @@ public class MainActivity extends AppCompatActivity {
 
     public void openDatabase(String databaseName){
         println("openDatabase 호출됨.");
-        database = openOrCreateDatabase(databaseName, MODE_PRIVATE, null);
+/*        database = openOrCreateDatabase(databaseName, MODE_PRIVATE, null);
 
         if(database != null){
             println("database 오픈됨.");
-        }
+        }*/
+
+        DatabaseHelper helper  = new DatabaseHelper(this, databaseName, null, 2);
+        database = helper.getWritableDatabase();
+
+
     }
 
     public void createTable(String tableName){
         println("createTable 호출됨.");
         if(database != null){
+            println(" 테이블 생성준비.");
             String sql = "create table " + tableName + "(_id integer PRIMARY KEY autoincrement, name text, age integer, mobile text) ";
             database.execSQL(sql);
 
@@ -112,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         println("InsertData 호출됨!");
 
         if(database != null){
+            println("데이터 추가 준비");
             String sql = "insert into customer (name, age, mobile) values (? , ? , ?)";
 
             Object[] params = {name, age, mobile};
@@ -149,4 +158,45 @@ public class MainActivity extends AppCompatActivity {
     public void println(String data){
         textView.append(data + "\n");
     }
+
+
+    class DatabaseHelper extends SQLiteOpenHelper {
+
+        public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+            super(context, name, factory, version);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            println("onCreate 호출됨.");
+
+            String tableName = "customer";
+
+
+                String sql = "create table if not exists " + tableName + "(_id integer PRIMARY KEY autoincrement, name text, age integer, mobile text) ";
+                db.execSQL(sql);
+
+                println(" 테이블 생성됨.");
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+            println("onUpgrade 호출됨 :"  + oldVersion + " , " + newVersion );
+
+
+            if(newVersion > 1) {
+                String tableName = "customer";
+                db.execSQL("drop table if exists " + tableName);
+                println("테이블 삭제함");
+
+                String sql = "create table " + tableName + "(_id integer PRIMARY KEY autoincrement, name text, age integer, mobile text) ";
+                database.execSQL(sql);
+
+                println("테이블 새로 생성됨.");
+            }
+        }
+    }
+
 }
