@@ -1,4 +1,4 @@
-package com.ksh.java200.N60;
+package com.ksh.java200.N060;
 
 import java.util.ArrayList;
 import java.util.List;
