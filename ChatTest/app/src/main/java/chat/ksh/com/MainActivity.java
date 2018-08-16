@@ -1,6 +1,7 @@
 package chat.ksh.com;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -53,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
                FirebaseUser user =  mAuth.getCurrentUser();
 
                if(user != null){
+                   SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
+                   SharedPreferences.Editor editor = sharedPreferences.edit();
+                   editor.putString("uid" , user.getUid());
+                   editor.putString("email" , user.getEmail());
+                   editor.apply();
 
                }else{
 
