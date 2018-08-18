@@ -5,13 +5,8 @@
     android:layout_height="match_parent"
     android:background="#ffffff"
     android:clickable="true"
-    tools:context=".FriendsFragment">
+    tools:context=".MainFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/rvFrend"
-        android:scrollbars="horizontal"
-        />
+
 
 </RelativeLayout>

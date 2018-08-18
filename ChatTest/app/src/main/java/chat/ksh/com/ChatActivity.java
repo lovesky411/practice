@@ -1,10 +1,12 @@
 package chat.ksh.com;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -52,6 +54,11 @@ public class ChatActivity extends AppCompatActivity {
 
         }
 
+        Intent in = getIntent();
+        final String strChatId = in.getStringExtra("friendUid");
+
+        Log.d("chatID" , strChatId);
+
 
         edtText = findViewById(R.id.edtText);
         btnSend = findViewById(R.id.btnSend);
@@ -70,7 +77,7 @@ public class ChatActivity extends AppCompatActivity {
                     String date = fm.format(c.getTime());
 
 
-                    DatabaseReference myRef = database.getReference("chats").child(date);
+                    DatabaseReference myRef = database.getReference("users").child(strChatId).child("chat").child(date);
 
                     //
                     Hashtable<String, String> chat = new Hashtable<>();
@@ -113,7 +120,7 @@ public class ChatActivity extends AppCompatActivity {
 
 
 
-        DatabaseReference myRef = database.getReference("chats");
+        DatabaseReference myRef = database.getReference("users").child(strChatId).child("chat");
 
         myRef.addChildEventListener(new ChildEventListener() {
             @Override

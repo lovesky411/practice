@@ -14,15 +14,19 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,6 +35,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,6 +53,8 @@ public class ProfileFragment extends Fragment {
     Bitmap bitmap;
     String strEmail, strUid;
 
+    ProgressBar pbLogin;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -55,6 +65,43 @@ public class ProfileFragment extends Fragment {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
         strEmail =sharedPreferences.getString("email", "");
         strUid =  sharedPreferences.getString("uid", "");
+
+        pbLogin = v.findViewById(R.id.pbLogin);
+
+       FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+        myRef.child("users").child(strUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+//                String value = dataSnapshot.getValue(String.class);
+                String stPhoto = dataSnapshot.child("photo").getValue().toString();
+
+                if(TextUtils.isEmpty(stPhoto)){
+                    pbLogin.setVisibility(View.GONE);
+                }else {
+                    pbLogin.setVisibility(View.VISIBLE);
+                    Picasso.get().load(stPhoto).fit().centerInside().into(ivUser, new Callback.EmptyCallback(){
+                        @Override
+                        public void onSuccess(){
+//                        animator.
+//                            Log.d("stphotoo!!", stPhoto);
+                    //        Toast.makeText(getContext(), "성공", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    pbLogin.setVisibility(View.GONE);
+                }
+
+//                Log.d(TAG, "Value is: " + value);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                //Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(getActivity(),
                 android.Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -84,13 +131,22 @@ public class ProfileFragment extends Fragment {
 
 
 
-         ivUser = v.findViewById(R.id.ivUser);
+        ivUser = v.findViewById(R.id.ivUser);
         ivUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(i, 1);
 
+            }
+        });
+
+        Button btnLogout = v.findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FirebaseAuth.getInstance().signOut();
+                getActivity().finish();
             }
         });
 
@@ -101,7 +157,7 @@ public class ProfileFragment extends Fragment {
     }
 
     public void uploadImage(){
-        StorageReference mountainsRef = mStorageRef.child("users").child(strEmail + ".jpg");
+        StorageReference mountainsRef = mStorageRef.child("users").child(strUid + ".jpg");
 
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -113,26 +169,27 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onFailure(@NonNull Exception exception) {
                 // Handle unsuccessful uploads
-                Toast.makeText(getActivity(), "1111111111111..", Toast.LENGTH_LONG).show();
+    //            Toast.makeText(getActivity(), "1111111111111..", Toast.LENGTH_LONG).show();
                 Log.d("faill.....", "fail..!!!!!!");
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
-                // ...
                 Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                String photoUri = String.valueOf(downloadUrl);
                 Log.d("url", String.valueOf(downloadUrl));
-                Toast.makeText(getActivity(), "2222222222222..", Toast.LENGTH_LONG).show();
+//                Toast.makeText(getActivity(), "2222222222222..", Toast.LENGTH_LONG).show();
 
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference myRef = database.getReference("users");
 
                 Hashtable<String, String> profile = new Hashtable<>();
                 profile.put("email", strEmail);
-                profile.put("photo", String.valueOf(downloadUrl));
-                Toast.makeText(getActivity(), "333333333333..", Toast.LENGTH_LONG).show();
-                myRef.child(strUid).setValue("Hello, World!");
+                profile.put("key", strUid);
+                profile.put("photo", photoUri);
+
+        //        Toast.makeText(getActivity(), "333333333333..", Toast.LENGTH_LONG).show();
+                myRef.child(strUid).setValue(profile);
                 myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -155,6 +212,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         Uri image = data.getData();
         try {
             bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), image);

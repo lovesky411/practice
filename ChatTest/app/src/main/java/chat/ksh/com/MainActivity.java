@@ -18,6 +18,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.Hashtable;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,11 +32,13 @@ public class MainActivity extends AppCompatActivity {
     EditText edtPassword;
     String strEmail;
     String strPassword;
+    String stUid;
 
     ProgressBar pbLogin;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
+    DatabaseReference myRef;
+    FirebaseUser user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,12 +52,15 @@ public class MainActivity extends AppCompatActivity {
         Button btnCancel = findViewById(R.id.btnCancel);
         pbLogin = findViewById(R.id.pbLogin);
 
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        myRef = database.getReference();
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-               FirebaseUser user =  mAuth.getCurrentUser();
+               user =  mAuth.getCurrentUser();
+
 
                if(user != null){
                    SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
@@ -59,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
                    editor.putString("uid" , user.getUid());
                    editor.putString("email" , user.getEmail());
                    editor.apply();
+
+
 
                }else{
 
@@ -112,7 +123,18 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                         //   FirebaseUser user = mAuth.getCurrentUser();
+
+                            if(user != null) {
+
+                                stUid = user.getUid();
+                                Hashtable<String, String> profile = new Hashtable<>();
+                                profile.put("email", user.getEmail());
+                                profile.put("photo", "");
+                                profile.put("key", user.getUid());
+
+                                myRef.child("users").child(user.getUid()).setValue(profile);
+                            }
                         //    updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -120,10 +142,12 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                      //       updateUI(null);
-                        }
 
-                        // ...
+
+                        }
                     }
+
+
                 });
     }
 
@@ -139,15 +163,16 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             pbLogin.setVisibility(View.INVISIBLE);
-                Intent intent = new Intent(MainActivity.this, TabActivity.class);
+                            Intent intent = new Intent(MainActivity.this, TabActivity.class);
 
-                startActivity(intent);
-                finish();
+                            startActivity(intent);
+                            finish();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(MainActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+
                         }
 
                         // ...
