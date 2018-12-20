@@ -4,7 +4,6 @@ import com.ksh.java200.N108.CardUtil;
 import com.ksh.java200.N109.Card;
 import com.ksh.java200.N109.CardCase;
 import com.ksh.java200.N110.CardRule;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.Date;
 import java.util.Scanner;
