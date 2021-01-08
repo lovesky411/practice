@@ -1,0 +1,18 @@
+package com.test.movie;
+
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class RestContorller {
+	
+	/* Naver Open API ฐüทร */
+	private static final String naver_url = "";
+	private static final String naver_key = "";
+	
+	
+	private static final String kobis_url = "";
+	private static final String kobis_key = "";
+	
+	
+
+}
